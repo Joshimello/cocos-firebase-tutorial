@@ -45,7 +45,7 @@ export default class Main extends cc.Component {
   }
 
   stringRandomSuffix(string: string) {
-    const randomInt = Math.floor(Math.random() * (0 - 9999 + 1));
+    const randomInt = Math.floor(Math.random() * 10000);
     const suffix = randomInt.toString().padStart(4, "0");
     return `${string}_${suffix}`;
   }
