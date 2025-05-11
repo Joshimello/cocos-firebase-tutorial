@@ -11,12 +11,18 @@ export default class Player extends cc.Component {
   @property(cc.Label)
   playerNameLabel: cc.Label = null;
 
+  private _isNamed = false;
   private _currentDirection: cc.Vec2 = cc.v2(0, 0);
   private _isMoving: boolean = false;
   private _prevMoving: boolean = false;
 
+  private _playerName: string = "";
+  private _syncInterval: number = 0.1;
+  private _timeSinceLastSync: number = 0;
+
   onLoad() {
-    this.enableInput();
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
   }
 
   start() {
@@ -26,25 +32,36 @@ export default class Player extends cc.Component {
   update(dt: number) {
     this.handleMovement(dt);
     this.handleAnimation(dt);
+    this.updateDatabase(dt);
+  }
+
+  private updateDatabase(dt: number) {
+    if (!this._isNamed) return;
+    this._timeSinceLastSync += dt;
+    if (this._timeSinceLastSync < this._syncInterval) return;
+
+    this._timeSinceLastSync = 0;
+
+    const playerData = {
+      name: this._playerName,
+      position: {
+        x: this.node.position.x,
+        y: this.node.position.y,
+      },
+      state: this._isMoving ? "walking" : "idle",
+      lastUpdate: firebase.database.ServerValue.TIMESTAMP,
+    };
+
+    firebase
+      .database()
+      .ref("players/" + this._playerName)
+      .set(playerData);
   }
 
   setPlayerName(name: string) {
-    if (!name) {
-      this.playerNameLabel.string = "no name ;-;";
-      return;
-    }
-
     this.playerNameLabel.string = name;
-  }
-
-  private enableInput() {
-    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-  }
-
-  private disableInput() {
-    cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-    cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+    this._playerName = name;
+    this._isNamed = true;
   }
 
   private onKeyDown(event: cc.Event.EventKeyboard) {
@@ -131,16 +148,9 @@ export default class Player extends cc.Component {
   }
 
   private updateFacingDirection() {
-    // Change sprite direction based on movement
-    // For example, flip the sprite when moving left
     if (this.playerSkeleton && this._currentDirection.x !== 0) {
       this.playerSkeleton.node.scaleX =
         this._currentDirection.x > 0 ? 0.75 : -0.75;
     }
-  }
-
-  onDestroy() {
-    // Clean up event listeners
-    this.disableInput();
   }
 }
