@@ -30,19 +30,21 @@ export default class OtherPlayer extends cc.Component {
     this.setupFirebaseListener();
   }
 
+  // TODO-5: Implement Firebase database other player data listener
   private setupFirebaseListener() {
-    this._databaseRef = firebase.database().ref(`players/${this._playerName}`);
-    this._databaseRef.on("value", this.onPlayerDataUpdate.bind(this));
+    // this._databaseRef = ...
+    // this._databaseRef.on(..., ...);
   }
 
+  // TODO-6: Implement Firebase database other player data update
   private onPlayerDataUpdate(snapshot: firebase.database.DataSnapshot) {
-    const playerData = snapshot.val();
+    // Get the snapshot value
+    const playerData = null;
     if (!playerData) return;
 
+    // Setting the positions and animation states from the database values
     this._previousPosition = this._targetPosition.clone();
-
     this._targetPosition = cc.v3(playerData.position.x, playerData.position.y);
-
     if (this._lastState !== playerData.state) {
       this._lastState = playerData.state;
       this.playerSkeleton.animation =
