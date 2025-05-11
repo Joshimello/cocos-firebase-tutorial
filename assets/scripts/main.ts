@@ -22,10 +22,10 @@ export default class Main extends cc.Component {
 
   private _localPlayerName: string = "";
   private _otherPlayers: Map<string, cc.Node> = new Map();
-  private _playersRef: firebase.database.Reference = null;
 
   onLoad() {}
 
+  // TODO-1: Initialize Firebase instance
   start() {
     const firebaseConfig = {
       apiKey: "AIzaSyBzVhYR1jAjItjrg2KD2HM1CDfefhgR3_k",
@@ -38,10 +38,9 @@ export default class Main extends cc.Component {
       appId: "1:806550740126:web:823858b09e4593a82fef8f",
     };
 
-    const app = firebase.initializeApp(firebaseConfig);
-    console.log("Firebase initialized:", app);
-
-    this._playersRef = firebase.database().ref("players");
+    // Run initializeApp() to initialize the Firebase app
+    // const app = ...
+    // console.log("Firebase initialized:", app);
   }
 
   stringRandomSuffix(string: string) {
@@ -66,14 +65,20 @@ export default class Main extends cc.Component {
     this.loginNode.active = false;
   }
 
+  // TODO-3: Implement Firebase database other players data listening
   startListeningForPlayers() {
-    this._playersRef.on("child_added", this.onPlayerAdded.bind(this));
-    this._playersRef.on("child_removed", this.onPlayerRemoved.bind(this));
+    // Get a reference to the players node in the database
+    // const playersRef = ...
+    //
+    // Set up a listener for child_added event to call onPlayerAdded
+    // playersRef.on(..., ...)
   }
 
+  // TODO-4: Implement event handler when a new player is added
   onPlayerAdded(snapshot: firebase.database.DataSnapshot) {
-    const playerName = snapshot.key;
-    const playerData = snapshot.val();
+    // Get the player data from the snapshot
+    const playerName = null;
+    const playerData = null;
 
     // Skip if this is the local player
     if (playerName === this._localPlayerName) return;
@@ -87,7 +92,7 @@ export default class Main extends cc.Component {
     const newPlayerNode = cc.instantiate(this.otherPlayerPrefab);
     newPlayerNode.parent = this.spawnNode;
 
-    // Set initial position if available
+    // Set initial position
     if (playerData.position) {
       newPlayerNode.setPosition(playerData.position.x, playerData.position.y);
     }
@@ -98,27 +103,5 @@ export default class Main extends cc.Component {
 
     // Store reference to this player
     this._otherPlayers.set(playerName, newPlayerNode);
-  }
-
-  onPlayerRemoved(snapshot: firebase.database.DataSnapshot) {
-    const playerName = snapshot.key;
-
-    // Skip if this is the local player
-    if (playerName === this._localPlayerName) return;
-
-    console.log(`Player disconnected: ${playerName}`);
-
-    // Find and remove the player node
-    const playerNode = this._otherPlayers.get(playerName);
-    if (playerNode) {
-      playerNode.removeFromParent(true);
-      this._otherPlayers.delete(playerName);
-    }
-  }
-
-  onDestroy() {
-    if (this._playersRef) {
-      this._playersRef.off();
-    }
   }
 }

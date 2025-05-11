@@ -35,27 +35,33 @@ export default class Player extends cc.Component {
     this.updateDatabase(dt);
   }
 
+  // TODO-2: Implement Firebase database local player data uploading
   private updateDatabase(dt: number) {
+    // We should not sync the database if the player is not named (not logged in)
     if (!this._isNamed) return;
-    this._timeSinceLastSync += dt;
-    if (this._timeSinceLastSync < this._syncInterval) return;
 
+    // We should sync the database only every this._syncInterval seconds to avoid overloading the database
+    this._timeSinceLastSync += dt;
+    // if (...) return;
     this._timeSinceLastSync = 0;
 
+    // Next, construct the player data object to be sent to the database
     const playerData = {
       name: this._playerName,
+      // How to get the position of the node?
       position: {
-        x: this.node.position.x,
-        y: this.node.position.y,
+        x: null,
+        y: null,
       },
       state: this._isMoving ? "walking" : "idle",
       lastUpdate: firebase.database.ServerValue.TIMESTAMP,
     };
 
-    firebase
-      .database()
-      .ref("players/" + this._playerName)
-      .set(playerData);
+    // Finally, send the player data to the database
+    // the reference to the player's data in the database should be ("players/" + this._playerName)
+    // how should we set the data?
+
+    // firebase.database().???
   }
 
   setPlayerName(name: string) {
